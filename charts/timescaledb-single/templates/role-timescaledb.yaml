@@ -2,6 +2,7 @@
 # Please see the included NOTICE for copyright information and LICENSE for a copy of the license.
 
 {{- if .Values.rbac.create }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -44,4 +45,33 @@ rules:
   - patch
   - update
   - watch
+- apiGroups: [""]
+  resources: ["pods", "pods/log"]
+  verbs:
+  - get
+  - list
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs:
+  - create
+...
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ template "timescaledb.fullname" . }}
+  labels:
+    app: {{ template "timescaledb.fullname" . }}
+    chart: {{ template "timescaledb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ template "timescaledb.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ template "timescaledb.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+...
 {{- end }}
