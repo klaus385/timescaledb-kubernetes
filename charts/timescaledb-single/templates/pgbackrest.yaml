@@ -54,7 +54,7 @@ spec:
             cluster-name: {{ template "clusterName" $ }}
         spec:
           restartPolicy: OnFailure
-          serviceAccountName:  {{ template "timescaledb.serviceAccountName" $ }}
+          serviceAccountName: {{ template "timescaledb.serviceAccountName" $ }}
           containers:
             - name: {{ template "timescaledb.fullname" $ }}-{{ .type }}
               image: dtzar/helm-kubectl

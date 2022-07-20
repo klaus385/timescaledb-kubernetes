@@ -56,4 +56,23 @@ rules:
   verbs:
   - create
 ...
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ template "timescaledb.fullname" . }}
+  labels:
+    app: {{ template "timescaledb.fullname" . }}
+    chart: {{ template "timescaledb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+rules:
+- apiGroups: [""]
+  resources: ["services"]
+  verbs:
+  - get
+  - watch
+  - list
+  - create
+...
 {{- end }}
