@@ -60,7 +60,7 @@ spec:
               command: ["/bin/bash"]
               args:
               - -c
-              - "kubectl exec -it $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest backup --type={{ quote .type }}"
+              - 'kubectl exec -it $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest backup --type={{ quote .type }}'
 ...
 {{- end }}
 {{ end }}
