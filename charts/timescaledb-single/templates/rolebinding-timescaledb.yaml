@@ -33,6 +33,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ template "timescaledb.serviceAccountName" . }}
+    namespace:  {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
