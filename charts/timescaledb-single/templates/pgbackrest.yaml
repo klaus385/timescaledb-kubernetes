@@ -95,7 +95,7 @@ spec:
           restartPolicy: OnFailure
           serviceAccountName: {{ template "timescaledb.serviceAccountName" $ }}
           containers:
-            - name: {{ template "timescaledb.fullname" $ }}-{{ .name }}-info
+            - name: {{ template "timescaledb.fullname" $ }}-pgbackrest-info
               image: curlimages/curl
               command: ["/bin/bash"]
               args:
