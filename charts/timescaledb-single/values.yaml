@@ -66,7 +66,9 @@ secrets:
   pgbackrestSecretName: ""
 
   # Slack Token for Automated PGBackrest Info to Channel
-  slackToken: ""
+  slack:
+    token: ""
+    channel: ""
 
 backup:
   enabled: false
