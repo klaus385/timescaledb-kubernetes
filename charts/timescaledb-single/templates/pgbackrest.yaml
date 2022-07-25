@@ -100,16 +100,7 @@ spec:
               command: ["/bin/bash"]
               args:
               - -c
-              - |
-                'curl -s -H "multipart/form-data" \
-                -H "application/x-www-form-urlencoded" \
-                -d token="{{ .Values.secrets.slack.token }}" \
-                -d channels={{ .Values.secrets.slack.channel }} \
-                -d initial_comment="{{ upper $.Release.Name }} - ({{ .Values.kubernetesClusterName}}) PGBackrest Info" \
-                -d filetype="text" \
-                -d title="PGBackrest Info" \
-                -d content="$(kubectl exec -it $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest info)" \
-                https://slack.com/api/files.upload'
+              - 'curl -s -H "multipart/form-data" -H "application/x-www-form-urlencoded" -d token="{{ .Values.secrets.slack.token }}" -d channels={{ .Values.secrets.slack.channel }} -d initial_comment="{{ upper $.Release.Name }} - ({{ .Values.kubernetesClusterName}}) PGBackrest Info" -d filetype="text" -d title="PGBackrest Info" -d content="$(kubectl exec -it $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest info)" https://slack.com/api/files.upload'
 ...
 {{- end }}
 {{ end }}
