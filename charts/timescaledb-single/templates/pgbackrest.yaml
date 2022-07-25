@@ -7,10 +7,12 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ template "timescaledb.fullname" . }}-backup
-  namespace: {{ .Release.Namespace }}
   labels:
-{{ include "timescaledb-helm.labels" . | indent 4}}
-    app.kubernetes.io/component: backup
+    app: {{ template "timescaledb.fullname" . }}
+    chart: {{ template "timescaledb.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    cluster-name: {{ template "clusterName" . }}
 spec:
   ports:
   - port: 8081
@@ -22,18 +24,17 @@ spec:
 ...
 {{- range .Values.backup.jobs }}
 ---
-{{- if semverCompare ">=1.21-0" $.Capabilities.KubeVersion.GitVersion -}}
-apiVersion: batch/v1
-{{- else -}}
 apiVersion: batch/v1beta1
-{{- end }}
 kind: CronJob
 metadata:
   name: {{ template "timescaledb.fullname" $ }}-{{ .name }}
   labels:
+    app: {{ template "timescaledb.fullname" $ }}
+    chart: {{ template "timescaledb.chart" $ }}
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
     backup-type: {{ .type }}
-{{ include "timescaledb-helm.labels" $ | indent 4}}
-    app.kubernetes.io/component: backup
+    cluster-name: {{ template "clusterName" $ }}
 spec:
   schedule: {{ quote .schedule }}
   concurrencyPolicy: Forbid
@@ -44,7 +45,7 @@ spec:
         backup-type: {{ .type }}
         cluster-name: {{ template "clusterName" $ }}
     spec:
-      activeDeadlineSeconds: 60
+      activeDeadlineSeconds: {{.activeDeadlineSeconds}}
       template:
         metadata:
           labels:
@@ -60,7 +61,46 @@ spec:
               command: ["/bin/bash"]
               args:
               - -c
-              - 'kubectl exec -i $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest backup --type={{ quote .type }}'
+              - 'kubectl exec -i $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest backup --type={{ quote .type }} --log-level-console=detail'
+...
+{{- end }}
+{{- if ne .Values.secrets.slack.token "" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ template "timescaledb.fullname" $ }}-pgbackrest-info
+  labels:
+    app: {{ template "timescaledb.fullname" $ }}
+    chart: {{ template "timescaledb.chart" $ }}
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+    cluster-name: {{ template "clusterName" $ }}
+spec:
+  schedule: "12 14 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        app: {{ template "timescaledb.fullname" $ }}
+        cluster-name: {{ template "clusterName" $ }}
+    spec:
+      activeDeadlineSeconds: 60
+      template:
+        metadata:
+          labels:
+            app: {{ template "timescaledb.fullname" $ }}
+            cluster-name: {{ template "clusterName" $ }}
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ template "timescaledb.serviceAccountName" $ }}
+          containers:
+            - name: {{ template "timescaledb.fullname" $ }}-pgbackrest-info
+              image: dtzar/helm-kubectl
+              command: ["/bin/bash"]
+              args:
+              - -c
+              - 'curl -s -H "multipart/form-data" -H "application/x-www-form-urlencoded" -d token="{{ .Values.secrets.slack.token }}" -d channels={{ .Values.secrets.slack.channel }} -d initial_comment="{{ upper $.Release.Name }} - ({{ .Values.kubernetesClusterName}}) PGBackrest Info" -d filetype="text" -d title="PGBackrest Info" -d content="$(kubectl exec -it $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest info)" https://slack.com/api/files.upload'
 ...
 {{- end }}
 {{ end }}
