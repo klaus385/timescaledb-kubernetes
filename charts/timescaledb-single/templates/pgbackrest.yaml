@@ -64,7 +64,7 @@ spec:
               - 'kubectl exec -i $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest backup --type={{ quote .type }}'
 ...
 {{- end }}
-{{- if ne .Values.secrets.slackToken "" }}
+{{- if ne .Values.secrets.slack.token "" }}
 ---
 apiVersion: batch/v1beta1
 kind: CronJob
