@@ -96,7 +96,7 @@ spec:
           serviceAccountName: {{ template "timescaledb.serviceAccountName" $ }}
           containers:
             - name: {{ template "timescaledb.fullname" $ }}-pgbackrest-info
-              image: curlimages/curl
+              image: dtzar/helm-kubectl
               command: ["/bin/bash"]
               args:
               - -c
