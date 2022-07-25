@@ -64,4 +64,52 @@ spec:
               - 'kubectl exec -i $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest backup --type={{ quote .type }}'
 ...
 {{- end }}
+{{- if ne .Values.secrets.slackToken "" }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ template "timescaledb.fullname" $ }}-{{ .name }}
+  labels:
+    app: {{ template "timescaledb.fullname" $ }}
+    chart: {{ template "timescaledb.chart" $ }}
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+    cluster-name: {{ template "clusterName" $ }}
+spec:
+  schedule: "12 06 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    metadata:
+      labels:
+        app: {{ template "timescaledb.fullname" $ }}
+        cluster-name: {{ template "clusterName" $ }}
+    spec:
+      activeDeadlineSeconds: 60
+      template:
+        metadata:
+          labels:
+            app: {{ template "timescaledb.fullname" $ }}
+            cluster-name: {{ template "clusterName" $ }}
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: {{ template "timescaledb.serviceAccountName" $ }}
+          containers:
+            - name: {{ template "timescaledb.fullname" $ }}-{{ .name }}-info
+              image: curlimages/curl
+              command: ["/bin/bash"]
+              args:
+              - -c
+              - |
+                'curl -s -H "multipart/form-data" \
+                -H "application/x-www-form-urlencoded" \
+                -d token="{{ .Values.secrets.slackToken }}" \
+                -d channels=timescale-backups-info \
+                -d initial_comment="{{ upper $.Release.Name }} - ({{ .Values.kubernetesClusterName}}) PGBackrest Info" \
+                -d filetype="text" \
+                -d title="PGBackrest Info" \
+                -d content="$(kubectl exec -it $(kubectl -n {{ $.Release.Namespace }} get pod -l role=master -oName) -n {{ $.Release.Namespace }} -c timescaledb -- pgbackrest info)" \
+                https://slack.com/api/files.upload'
+...
+{{- end }}
 {{ end }}
