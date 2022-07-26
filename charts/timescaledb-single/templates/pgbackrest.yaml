@@ -45,7 +45,7 @@ spec:
         backup-type: {{ .type }}
         cluster-name: {{ template "clusterName" $ }}
     spec:
-      activeDeadlineSeconds: 60
+      activeDeadlineSeconds: 32400
       template:
         metadata:
           labels:
