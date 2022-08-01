@@ -97,9 +97,11 @@ backup:
     - name: full-weekly
       type: full
       schedule: "12 02 * * 0"
+      activeDeadlineSeconds: 64800
     - name: incremental-daily
       type: incr
       schedule: "12 02 * * 1-6"
+      activeDeadlineSeconds: 64800
   # Extra custom environment variables for the backup container.
   envFrom:
   # - secretRef:
