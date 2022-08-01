@@ -45,7 +45,7 @@ spec:
         backup-type: {{ .type }}
         cluster-name: {{ template "clusterName" $ }}
     spec:
-      activeDeadlineSeconds: 32400
+      activeDeadlineSeconds: {{.activeDeadlineSeconds}}
       template:
         metadata:
           labels:
@@ -77,7 +77,7 @@ metadata:
     heritage: {{ $.Release.Service }}
     cluster-name: {{ template "clusterName" $ }}
 spec:
-  schedule: "12 06 * * *"
+  schedule: "12 14 * * *"
   concurrencyPolicy: Forbid
   jobTemplate:
     metadata:
