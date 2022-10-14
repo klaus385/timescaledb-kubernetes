@@ -26,6 +26,7 @@ required:
   - persistentVolumes
   - pgBouncer
   - podAnnotations
+  - podLabels
   - podManagementPolicy
   - prometheus
   - rbac
@@ -439,6 +440,10 @@ properties:
     type: object
     additionalProperties:
       type: string
+  podLabels:
+    type: object
+    additionalProperties:
+      type: string
   tolerations:
     type: array
   debug:
@@ -484,6 +489,10 @@ properties:
       envFrom:
         type:
           - array
+          - "null"
+      resources:
+        type:
+          - object
           - "null"
   secrets:
     type: object

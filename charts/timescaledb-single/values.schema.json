@@ -169,6 +169,12 @@
             "object",
             "null"
           ]
+        },
+        "resources": {
+          "type": [
+            "object",
+            "null"
+          ]
         }
       },
       "required": [
@@ -597,6 +603,12 @@
       },
       "type": "object"
     },
+    "podLabels": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
     "podManagementPolicy": {
       "type": [
         "string"
@@ -851,6 +863,7 @@
     "persistentVolumes",
     "pgBouncer",
     "podAnnotations",
+    "podLabels",
     "podManagementPolicy",
     "prometheus",
     "rbac",
