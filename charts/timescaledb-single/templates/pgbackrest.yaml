@@ -8,11 +8,19 @@ kind: Service
 metadata:
   name: {{ template "timescaledb.fullname" . }}-backup
   labels:
+<<<<<<< HEAD
     app: {{ template "timescaledb.fullname" . }}
     chart: {{ template "timescaledb.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
     cluster-name: {{ template "clusterName" . }}
+||||||| parent of b8c78e8 (chart/timescaledb-single: unify labels across resources)
+{{ include "timescaledb-helm.labels" . | indent 4}}
+    app.kubernetes.io/component: backup
+=======
+    {{ include "timescaledb-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+>>>>>>> b8c78e8 (chart/timescaledb-single: unify labels across resources)
 spec:
   ports:
   - port: 8081
@@ -34,7 +42,15 @@ metadata:
     release: {{ $.Release.Name }}
     heritage: {{ $.Release.Service }}
     backup-type: {{ .type }}
+<<<<<<< HEAD
     cluster-name: {{ template "clusterName" $ }}
+||||||| parent of b8c78e8 (chart/timescaledb-single: unify labels across resources)
+{{ include "timescaledb-helm.labels" $ | indent 4}}
+    app.kubernetes.io/component: backup
+=======
+    {{ include "timescaledb-helm.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backup
+>>>>>>> b8c78e8 (chart/timescaledb-single: unify labels across resources)
 spec:
   schedule: {{ quote .schedule }}
   concurrencyPolicy: Forbid
