@@ -43,12 +43,18 @@ metadata:
     heritage: {{ $.Release.Service }}
     backup-type: {{ .type }}
 <<<<<<< HEAD
+<<<<<<< HEAD
     cluster-name: {{ template "clusterName" $ }}
 ||||||| parent of b8c78e8 (chart/timescaledb-single: unify labels across resources)
 {{ include "timescaledb-helm.labels" $ | indent 4}}
     app.kubernetes.io/component: backup
 =======
     {{ include "timescaledb-helm.labels" . | nindent 4 }}
+||||||| parent of b931098 (Fix scope in range for labels templating)
+    {{ include "timescaledb-helm.labels" . | nindent 4 }}
+=======
+    {{ include "timescaledb-helm.labels" $ | nindent 4 }}
+>>>>>>> b931098 (Fix scope in range for labels templating)
     app.kubernetes.io/component: backup
 >>>>>>> b8c78e8 (chart/timescaledb-single: unify labels across resources)
 spec:
