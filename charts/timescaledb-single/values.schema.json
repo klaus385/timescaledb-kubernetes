@@ -1,32 +1,6 @@
 {
   "additionalProperties": false,
   "definitions": {
-    "loadBalancer": {
-      "additionalProperties": false,
-      "properties": {
-        "annotations": {
-          "additionalProperties": {
-            "type": "string"
-          },
-          "type": "object"
-        },
-        "enabled": {
-          "type": "boolean"
-        },
-        "port": {
-          "maximum": 65535,
-          "minimum": 1000,
-          "type": "integer"
-        },
-        "spec": {
-          "type": [
-            "object",
-            "null"
-          ]
-        }
-      },
-      "type": "object"
-    },
     "percent": {
       "maximum": 100,
       "mimimum": 0,
@@ -125,11 +99,8 @@
   },
   "properties": {
     "affinity": {
-      "additionalProperties": false,
+      "additionalProperties": true,
       "type": "object"
-    },
-    "affinityTemplate": {
-      "type": "string"
     },
     "backup": {
       "additionalProperties": false,
@@ -219,11 +190,29 @@
     },
     "clusterName": {
       "maxLength": 30,
-      "minLength": 1,
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": "string"
+    },
+    "curlImage": {
+      "additionalProperties": false,
+      "properties": {
+        "pullPolicy": {
+          "enum": [
+            "Always",
+            "Never",
+            "IfNotPresent"
+          ],
+          "type": "string"
+        },
+        "repository": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "tag": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "type": "object"
     },
     "debug": {
       "additionalProperties": false,
@@ -252,39 +241,12 @@
         "null"
       ]
     },
-    "fullWalPrevention": {
-      "additionalProperties": false,
-      "properties": {
-        "checkFrequency": {
-          "maximum": 900,
-          "minimum": 1,
-          "type": "integer"
-        },
-        "enabled": {
-          "type": "boolean"
-        },
-        "thresholds": {
-          "additionalProperties": false,
-          "properties": {
-            "readOnlyFreeMB": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "readOnlyFreePercent": {
-              "$ref": "#/definitions/percent"
-            },
-            "readWriteFreeMB": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "readWriteFreePercent": {
-              "$ref": "#/definitions/percent"
-            }
-          },
-          "type": "object"
-        }
-      },
-      "type": "object"
+    "fullnameOverride": {
+      "minLength": 1,
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "global": {
       "additionalProperties": true
@@ -310,16 +272,6 @@
         }
       },
       "type": "object"
-    },
-    "loadBalancer": {
-      "$ref": "#/definitions/loadBalancer"
-    },
-    "nameOverride": {
-      "minLength": 1,
-      "type": [
-        "string",
-        "null"
-      ]
     },
     "networkPolicy": {
       "additionalProperties": false,
@@ -485,7 +437,8 @@
             },
             "listen": {
               "enum": [
-                "0.0.0.0:5432"
+                "0.0.0.0:5432",
+                ":::5432"
               ],
               "type": "string"
             },
@@ -531,7 +484,8 @@
           "properties": {
             "listen": {
               "enum": [
-                "0.0.0.0:8008"
+                "0.0.0.0:8008",
+                ":::8008"
               ],
               "type": "string"
             }
@@ -639,6 +593,15 @@
     "prometheus": {
       "additionalProperties": false,
       "properties": {
+        "args": {
+          "items": {
+            "type": "string"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
         "enabled": {
           "type": "boolean"
         },
@@ -717,9 +680,6 @@
     "replicaCount": {
       "minimum": 0,
       "type": "integer"
-    },
-    "replicaLoadBalancer": {
-      "$ref": "#/definitions/loadBalancer"
     },
     "resources": {
       "additionalProperties": false,
@@ -837,6 +797,9 @@
     "tolerations": {
       "type": "array"
     },
+    "topologySpreadConstraints": {
+      "type": "array"
+    },
     "version": {
       "maximum": 14,
       "minimum": 11,
@@ -848,15 +811,13 @@
   },
   "required": [
     "affinity",
-    "affinityTemplate",
     "backup",
     "bootstrapFromBackup",
     "callbacks",
     "debug",
-    "fullWalPrevention",
+    "fullnameOverride",
     "image",
-    "loadBalancer",
-    "nameOverride",
+    "curlImage",
     "networkPolicy",
     "nodeSelector",
     "patroni",
@@ -869,14 +830,14 @@
     "rbac",
     "readinessProbe",
     "replicaCount",
-    "replicaLoadBalancer",
     "resources",
     "secrets",
     "serviceAccount",
     "podMonitor",
     "sharedMemory",
     "timescaledbTune",
-    "tolerations"
+    "tolerations",
+    "topologySpreadConstraints"
   ],
   "schema": "http://json-schema.org/draft-07/schema#"
 }

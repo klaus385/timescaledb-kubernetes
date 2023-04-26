@@ -6,7 +6,7 @@
 # Timescale Helm Charts
 
 This repository contains Helm charts to help with the deployment of
-[TimescaleDB](https://github.com/timescale/timescaledb/) and [Promscale](https://github.com/timescale/promscale) on Kubernetes. This
+[TimescaleDB](https://github.com/timescale/timescaledb/) on Kubernetes. This
 project is currently in active development.
 
 ## Repository
@@ -24,7 +24,6 @@ For more information, have a look at the [Using Helm](https://helm.sh/docs/intro
 - [Installing TimescaleDB](https://docs.timescale.com/getting-started/installation)
 - [Migrating data to TimescaleDB](https://docs.timescale.com/getting-started/migrating-data)
 - [Tutorials and sample data](https://docs.timescale.com/tutorials)
-- [Installing Promscale](https://docs.timescale.com/promscale/latest/installation/kubernetes/)
 
 # License
 

@@ -22,7 +22,6 @@ The following table lists the configurable parameters of the TimescaleDB Helm ch
 |       Parameter                   |           Description                       |                         Default                     |
 |-----------------------------------|---------------------------------------------|-----------------------------------------------------|
 | `affinity`                        | Affinity settings. Overrides `affinityTemplate` if set. | `{}`                                    |
-| `affinityTemplate`                | A template string to use to generate the affinity settings | Anti-affinity preferred on hostname and (availability) zone |
 | `backup.enabled`                  | Schedule backups to occur                   | `false`                                             |
 | `backup.jobs`                     | A list of backup schedules and types        | 1 full weekly backup, 1 incremental daily backup    |
 | `backup.pgBackRest:archive-get`   | [pgBackRest global:archive-get configuration](https://pgbackrest.org/user-guide.html#quickstart/configure-stanza)  | empty |
@@ -37,9 +36,6 @@ The following table lists the configurable parameters of the TimescaleDB Helm ch
 | `image.pullPolicy`                | The pull policy                             | `IfNotPresent`                                      |
 | `image.repository`                | The image to pull                           | `timescale/timescaledb-ha`                       |
 | `image.tag`                       | The version of the image to pull            | `pg13-ts2.1-latest`
-| `loadBalancer.annotations` | Deprecated(0.10.0): Pass on annotations to the Load Balancer | An AWS ELB annotation to increase the idle timeout |
-| `loadBalancer.enabled`     | Deprecated(0.10.0): If enabled, creates a LB for the primary | `true`                           |
-| `loadBalancer.spec`        | Deprecated(0.10.0): Extra configuration for service spec     | `nil`                            |
 | `service.primary.type`        | The service type to use for the primary service | `ClusterIP`                          |
 | `service.primary.port`        | The service port to use for the primary service | `5432`                               |
 | `service.primary.nodePort`    | The service nodePort to use for the primary service when `type` is `NodePort` | `null` |
@@ -52,7 +48,6 @@ The following table lists the configurable parameters of the TimescaleDB Helm ch
 | `service.replica.labels`      | Labels to add to the replica service            | `{}`                                 |
 | `service.replica.annotations` | Annotations to add to the replica service       | `{}`                                 |
 | `service.replica.spec`        | The service type to use for the replica service | `{}`                                 |
-| `nameOverride`                    | Override the name of the chart              | `timescaledb`                                       |
 | `networkPolicy.enabled`           | If enabled, creates a NetworkPolicy for controlling network access | `false`                      |
 | `networkPolicy.ingress`           | A list of Ingress rules to extend the base NetworkPolicy | `nil`                                  |
 | `networkPolicy.prometheusApp`     | Name of Prometheus app to allow it to scrape exporters | `prometheus`
@@ -81,16 +76,13 @@ The following table lists the configurable parameters of the TimescaleDB Helm ch
 | `podMonitor.namespace`        | Setting this will cause deploying podMonitor in a different namespace than TimescaleDB. | `nil` |
 | `podMonitor.labels`           | Additional labels that can be set on podMonitor object. | `nil` |
 | `podMonitor.metricRelabelings` | Additional prometheus metric relabelings. | `nil` |
-| `podMonitor.targetLabels`     | List of additional kubernetes labels that need to be transferred from Service object into metrics. | `nil` |
+| `podMonitor.podTargetLabels`  | List of additional kubernetes labels that need to be transferred from Pod object into metrics. | `nil` |
 | `prometheus.enabled`              | If enabled, run a [postgres\_exporter](https://github.com/prometheus-community/postgres_exporter) sidecar | `false` |
 | `prometheus.image.pullPolicy`     | The pull policy for the postgres\_exporter  | `IfNotPresent`                                      |
 | `prometheus.image.repository`     | The postgres\_exporter docker repo          | `quay.io/prometheuscommunity/postgres_exporter`     |
 | `prometheus.image.tag`            | The tag of the postgres\_exporter image     | `v0.11.0`                                           |
 | `rbac.create`                     | Create required role and rolebindings       | `true`                                              |
 | `replicaCount`                    | Amount of pods to spawn                     | `3`                                                 |
-| `replicaLoadBalancer.annotations` | Deprecated(0.10.0): Pass on annotations to the Load Balancer | An AWS ELB annotation to increase the idle timeout |
-| `replicaLoadBalancer.enabled` | Deprecated(0.10.0): If enabled, creates a LB for replica's only  | `false` |
-| `replicaLoadBalancer.spec`    | Deprecated(0.10.0): Extra configuration for replica service spec | `nil`   |
 | `resources`                       | Any resources you wish to assign to the timescaledb container | `{}`   |
 | `schedulerName`                   | Alternate scheduler name                    | `nil`                                               |
 | `secrets.credentials`             | A map of environment variables that influence Patroni, for example PATRONI_SUPERUSER_PASSWORD or PATRONI_REPLICATION_PASSWORD | Randomly generated |
@@ -269,12 +261,78 @@ If you intend to use this Helm chart in any operational capacity, configuring an
 - access key that allows you to login as the IAM user
 
 These configuration items should be part of the `RELEASE-pgbackrest` secret. Once you recreate this secret
-with the correct configurations, you can enable the backup by setting `backup.enabled` to `true`, for example:
+with the correct configurations, you can enable the backup in your `values.yaml`, for example:
+
+```yaml
+# Filename: myvalues.yaml
+secrets:
+  pgbackrest:
+    PGBACKREST_REPO1_S3_REGION: ""
+    PGBACKREST_REPO1_S3_KEY: ""
+    PGBACKREST_REPO1_S3_KEY_SECRET: ""
+    PGBACKREST_REPO1_S3_BUCKET: ""
+    PGBACKREST_REPO1_S3_ENDPOINT: "s3.amazonaws.com"
+
+backup:
+  enabled: true
+  pgBackRest:
+    repo1-type: s3
+    repo1-s3-region: us-east-2
+    repo1-s3-endpoint: s3.amazonaws.com
+```
+```
+helm upgrade --install example -f myvalues.yaml charts/timescaledb-single
+```
+
+### Create backups to Azure
+ the following items are required for you to enable creating backups to Azure:
+
+- an Azure Storage [account](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-create?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&tabs=azure-portal)
+- a container in the storage account
+- [Storage account access key](https://docs.microsoft.com/en-us/azure/storage/common/storage-account-keys-manage?toc=%2Fazure%2Fstorage%2Fblobs%2Ftoc.json&tabs=azure-portal) for authentication (either shared or sas)
+
+Similarly to S3, the access key configuration items should be part of the `RELEASE-pgbackrest` secret. Once you recreate this secret
+with the correct configurations, you can enable the backup in your `values.yaml`, for example:
+
+```yaml
+# Filename: myvalues.yaml
+secrets:
+  pgbackrest:
+    PGBACKREST_REPO1_AZURE_ACCOUNT: ""
+    PGBACKREST_REPO1_AZURE_CONTAINER: ""
+    PGBACKREST_REPO1_AZURE_KEY: ""
+    PGBACKREST_REPO1_AZURE_KEY_TYPE: ""
+
+backup:
+  enabled: true
+  pgBackRest:
+    repo1-type: azure
+    repo1-path: /repo
+```
+```
+helm upgrade --install example -f myvalues.yaml charts/timescaledb-single
+```
+
+### Create backups to GCS
+ the following items are required for you to enable creating backups to GCS:
+
+- a GCS bucket available for your backups
+- a [Service Account](https://cloud.google.com/storage/docs/projects#service-accounts)
+- [IAM Permissions for Cloud Storage](https://docs.aws.amazon.com/AmazonS3/latest/user-guide/add-bucket-policy.html) that allows the service account read and write access to (parts of) the bucket
+- [Service Account Key](https://cloud.google.com/iam/docs/creating-managing-service-account-keys) for authentication
+
+The service account key should be configured through the `RELEASE-pgbackrest-secrets` secret. Once you create this secret
+with the service account key, you can enable backups by setting `backup.enabled` to `true` and configuring `pgabackrest` to use GCS for backups. For example, if `RELEASE-pgbackrest-secrets` was configured as `your-service-key.json`:
 
 ```yaml
 # Filename: myvalues.yaml
 backup:
   enabled: true
+  pgBackRest:
+    repo1-type: gcs
+    repo1-path: /repo
+    repo1-gcs-bucket: your-bucket
+    repo1-gcs-key: /etc/pgbackrest_secrets/your-service-key.json
 ```
 ```
 helm upgrade --install example -f myvalues.yaml charts/timescaledb-single
@@ -310,10 +368,12 @@ bootstrapFromBackup:
   secretName: pgbackrest-bootstrap # optional
 ```
 
+**Note**: Once the data has been restored from backup, you may mark `bootstrapFromBackup` as disabled and enable `backup` in helm value file and update the release inorder to setup the backup for restored release.
+
 Restoring a different deployment using an existing deployment is possible, but can be dangerous,
 as at this point you may be having 2 deployments pointing to the same S3 bucket/path.
 Therefore, `bootstrapFromBackup.repo1-path` is required to be set.
-
+ 
 If there are any other changes to be made, for example the bucket itself, you can create a secret containing that
 information, for example:
 

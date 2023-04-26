@@ -5,7 +5,7 @@
       "schedule:daily"
     ],
     "dependencyDashboardLabels": ["dependencies"],
-    "dependencyDashboardAutoclose": "true",
+    "dependencyDashboardAutoclose": "false",
     "labels": ["dependencies"],
     "bumpVersion": "minor",
     "regexManagers": [
@@ -22,7 +22,7 @@
         "depNameTemplate": "golang"
       },
       {
-        "fileMatch": ["^\\charts\\/promscale\\/Chart\\.yaml$"],
+        "fileMatch": ["^charts\\/promscale\\/Chart\\.ya?ml$"],
         "matchStrings": ["appVersion:\\s(?<currentValue>.*?)\\n"],
         "datasourceTemplate": "github-tags",
         "depNameTemplate": "timescale/promscale"
